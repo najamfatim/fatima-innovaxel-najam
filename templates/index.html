@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Short URL</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      background-color: #f5f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .box {
+      background-color: #fff;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 32px;
+      color: #007BFF;
+      margin-bottom: 10px;
+    }
+    p.subtitle {
+      color: #555;
+      font-size: 16px;
+      margin-bottom: 30px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 15px;
+    }
+    .btn {
+      padding: 12px 24px;
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background-color 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+    .result, .stats {
+      text-align: left;
+      margin-top: 15px;
+      background-color: #eef3f8;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #007BFF;
+    }
+    .result a {
+      color: #007BFF;
+      word-break: break-all;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Short URL</h1>
+    <p class="subtitle">Paste the URL to be shortened</p>
+    <input type="text" id="longUrl" placeholder="Enter the link here">
+    <button class="btn" onclick="createShortURL()">Shorten URL</button>
+
+    <div class="result hidden" id="result"></div>
+    <div class="stats hidden" id="stats"></div>
+  </div>
+
+  <script>
+    let currentShortCode = "";
+
+    async function createShortURL() {
+      const longUrl = document.getElementById("longUrl").value;
+      const resultDiv = document.getElementById("result");
+      const statsDiv = document.getElementById("stats");
+
+      resultDiv.classList.add("hidden");
+      statsDiv.classList.add("hidden");
+
+      if (!longUrl) {
+        resultDiv.innerText = "Please enter a URL.";
+        resultDiv.classList.remove("hidden");
+        return;
+      }
+
+      try {
+        const response = await fetch("/shorten", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: longUrl })
+        });
+
+        const data = await response.json();
+
+        if (response.status === 201) {
+          currentShortCode = data.shortCode;
+          const shortLink = `http://localhost:5000/r/${data.shortCode}`;
+
+          resultDiv.innerHTML = `
+            <p><strong>Original URL:</strong><br>${data.url}</p>
+            <p><strong>Short URL:</strong><br><a href="${shortLink}" target="_blank">${shortLink}</a></p>
+            <button class="btn" onclick="getStats()">📊 View Statistics</button>
+            <button class="btn" onclick="deleteURL()">🗑️ Delete URL</button>
+          `;
+          resultDiv.classList.remove("hidden");
+        } else {
+          resultDiv.innerText = data.error || "Something went wrong.";
+          resultDiv.classList.remove("hidden");
+        }
+      } catch (error) {
+        resultDiv.innerText = "Error connecting to server.";
+        resultDiv.classList.remove("hidden");
+      }
+    }
+
+    async function getStats() {
+      const statsDiv = document.getElementById("stats");
+      try {
+        const res = await fetch(`/shorten/${currentShortCode}/stats`);
+        const data = await res.json();
+
+        if (res.status === 200) {
+          statsDiv.innerHTML = `
+            <p><strong>Original URL:</strong> ${data.url}</p>
+            <p><strong>Short Code:</strong> ${data.shortCode}</p>
+            <p><strong>Created At:</strong> ${data.createdAt}</p>
+            <p><strong>Updated At:</strong> ${data.updatedAt}</p>
+            <p><strong>Access Count:</strong> ${data.accessCount}</p>
+          `;
+        } else {
+          statsDiv.innerText = data.error || "Stats not available.";
+        }
+        statsDiv.classList.remove("hidden");
+      } catch (err) {
+        statsDiv.innerText = "Error retrieving statistics.";
+        statsDiv.classList.remove("hidden");
+      }
+    }
+
+    async function deleteURL() {
+      const resultDiv = document.getElementById("result");
+      const statsDiv = document.getElementById("stats");
+
+      try {
+        const res = await fetch(`/shorten/${currentShortCode}`, {
+          method: "DELETE"
+        });
+
+        if (res.status === 204) {
+          resultDiv.innerHTML = "✅ Short URL deleted successfully.";
+          statsDiv.innerHTML = "";
+        } else {
+          resultDiv.innerText = "❌ Failed to delete URL.";
+        }
+      } catch (err) {
+        resultDiv.innerText = "❌ Error deleting URL.";
+      }
+    }
+  </script>
+</body>
+</html>
