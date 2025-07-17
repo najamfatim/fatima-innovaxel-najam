@@ -19,6 +19,7 @@ migrate = Migrate(app, db)
 def home():
     return render_template('index.html')
 
+# Create Short URL
 @app.route('/shorten', methods=['POST'])
 def create_short_url():
     data = request.get_json()
