@@ -104,7 +104,7 @@ def get_url_stats(short_code):
         'accessCount': record.access_count
     })
 
-
+# Redirect to original URL
 @app.route('/r/<string:short_code>')
 def redirect_short_code(short_code):
     record = ShortURL.query.filter_by(short_code=short_code).first()
@@ -113,6 +113,7 @@ def redirect_short_code(short_code):
     record.access_count += 1
     db.session.commit()
     return redirect(record.url)
+
 
 
 if __name__ == '__main__':
