@@ -78,7 +78,7 @@ def update_short_url(short_code):
         'createdAt': record.created_at.isoformat(),
         'updatedAt': record.updated_at.isoformat()
     })
-
+#Delete Short URL
 @app.route('/shorten/<string:short_code>', methods=['DELETE'])
 def delete_short_url(short_code):
     record = ShortURL.query.filter_by(short_code=short_code).first()
