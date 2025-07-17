@@ -6,7 +6,7 @@ This is a simple RESTful URL shortener built with Flask, SQLAlchemy, and a respo
 
 ## 🔧 Setup Instructions
 
-1.Clone and switch to dev branch
+1. Clone and switch to dev branch
 git clone https://github.com/najamfatim/fatima-innovaxel-najam.git
 cd fatima-innovaxel-najam
 git checkout dev
