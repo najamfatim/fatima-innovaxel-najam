@@ -14,7 +14,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # ✅ Initialize DB
 db.init_app(app)
 migrate = Migrate(app, db)
-
+# Home Route
 @app.route('/')
 def home():
     return render_template('index.html')
